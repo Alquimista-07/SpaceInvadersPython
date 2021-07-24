@@ -1,1 +1,2 @@
+#Install the pygame version higher than version 1.7.1
 Pygame>=1.7.1
