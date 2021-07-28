@@ -1,2 +1,4 @@
 #Install the pygame version higher than version 1.7.1
 Pygame>=1.7.1
+#Install the numpy library version higher than version 1.19.2
+numpy>=1.19.2
