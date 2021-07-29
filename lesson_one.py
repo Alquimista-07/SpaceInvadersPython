@@ -22,6 +22,13 @@ pygame.display.set_caption('Space Invader')
 icon = pygame.image.load('resources/ufo.png')
 pygame.display.set_icon(icon)
 
+# Agregamos el puntaje con un estilo de texto y un tamanio de letra
+score_value = 0
+font = pygame.font.Font('freesansbold.ttf', 32)
+
+textX = 10
+textY = 10
+
 # Agregamos el jugador
 playerImg = pygame.image.load('resources/player.png')
 # Aignamos una posicion al jugador
@@ -33,11 +40,16 @@ playerX_change = 0
 def player(x, y):
     screen.blit(playerImg, (x, y))
 
+# Definimos la funcion para mostrar el puntaje y le asignamos el texto que se va a mostrar y se le asigna color blanco (255, 255, 255)
+def show_score(x, y):
+    score = font.render("Score : " + str(score_value), True, (255, 255, 255))
+    screen.blit(score, (x, y))
+
 # Bucle de ejecucion del juego
 running = True
 while running:
 
-    #RGB = Red, Green, Blue
+    # RGB = Red, Green, Blue
     screen.fill((0, 0, 0))
     # Imagen de fondo con su respectiva posicion
     screen.blit(background, (0, 0))
@@ -49,5 +61,9 @@ while running:
 
     # Mostramos el jugador en la posicion indicada
     player(playerX, playerY)
+    
+    # Llamaos dentro del bucle para visualizar cualquier puntaje o texto en la ventana
+    show_score(textX, textY)
+    
     # Actualizamos la ventana
     pygame.display.update()
