@@ -3,6 +3,7 @@ import random
 
 import pygame
 from pygame import mixer
+from pygame.constants import K_LEFT
 
 # Inicializar pygame
 pygame.init()
@@ -58,6 +59,40 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+
+        # Ahora dentro del bucle vamos a capturar los eventos del teclado
+        # Si se presiona la tecla, verifique si es derecha o izquierda
+        if event.type == pygame.KEYDOWN:
+            # Evento tecla izquierda
+            if event.key == pygame.K_LEFT:
+                playerX_change = -5
+            
+            # Evento tecla derecha
+            if event.key == pygame.K_RIGHT:
+                playerX_change = 5
+
+            # Evento tecla espaciadora para activar el disparo
+            if event.key == pygame.K_SPACE:
+                if bullet_state is "ready":
+                    bulletSound = mixer.Sound("resources/laser.wav")
+                    bulletSound.play()
+                    # Obtiene la coordenada X actual de la nave espacial
+                    bulletX = playerX
+                    fire_bullet(bulletX, bulletY)
+        
+        # Detiene el movimiento si se suelta la tecla
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
+                playerX_change = 0
+    
+    # Actualizar la posicion del jugador
+    playerX += playerX_change
+
+    # Limitar el movimiento al tamanio de la pantalla
+    if playerX <= 0:
+        playerX = 0
+    elif playerX >= 736:
+        playerX = 736
 
     # Mostramos el jugador en la posicion indicada
     player(playerX, playerY)
