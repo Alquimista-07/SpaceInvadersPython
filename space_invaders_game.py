@@ -41,6 +41,30 @@ playerX_change = 0
 def player(x, y):
     screen.blit(playerImg, (x, y))
 
+# Agregamos los enemigos
+# Definimos variables para las posiciones
+enemyImg = []
+enemyX = []
+enemyY = []
+enemyX_change = []
+enemyY_change = []
+# Definimos el numero de enemigos
+num_of_enemies = 6
+
+# Definimos la imagen para los enemigos
+for i in range(num_of_enemies):
+    enemyImg.append(pygame.image.load('resources/enemy.png'))
+    # Establecemos valores aleatorios para la apricion de los enemigos. Se tiene en cuenta que el rango es menor al tamnio de la pantalla en X y en Y (800, 600)
+    enemyX.append(random.randint(0, 736))
+    enemyY.append(random.randint(50, 150))
+    # Nos aseguramos que los enemigos no aparezcan en la misma linea del jugador
+    enemyX_change.append(4)
+    enemyY_change.append(40)
+
+# Pintar enemigos
+def enemy(x, y, i):
+    screen.blit(enemyImg[i], (x, y))
+
 # Definimos la funcion para mostrar el puntaje asignando el texto que se va a mostrar y ademas se le asigna el color blanco (255, 255, 255) al texto mostrado
 def show_score(x, y):
     score = font.render("Score : " + str(score_value), True, (255, 255, 255))
@@ -85,7 +109,7 @@ while running:
             if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
                 playerX_change = 0
     
-    # Actualizar la posicion del jugador
+    # Actualizar la posicion del jugador al mover el jugador
     playerX += playerX_change
 
     # Limitar el movimiento al tamanio de la pantalla
@@ -93,6 +117,23 @@ while running:
         playerX = 0
     elif playerX >= 736:
         playerX = 736
+
+    # Movimiento de los enemigos
+    for i in range(num_of_enemies):
+
+        # Mover la posición del enemigo
+        enemyX[i] += enemyX_change[i]
+
+        # Los enemigos dan la vuelta al movimiento si se cruzan con el borde
+        if enemyX[i] <= 0:
+            enemyX_change[i] = 4
+            enemyY[i] += enemyY_change[i]
+        elif enemyX[i] >= 736:
+            enemyX_change[i] = -4
+            enemyY[i] += enemyY_change[i]
+        
+        # Mostrar enemigos
+        enemy(enemyX[i], enemyY[i], i)
 
     # Mostramos el jugador en la posicion indicada
     player(playerX, playerY)
