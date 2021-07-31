@@ -1,9 +1,9 @@
 import math
 import random
 
+from pygame.locals import *
 import pygame
 from pygame import mixer
-from pygame.constants import K_LEFT
 
 # Inicializar pygame
 pygame.init()
@@ -15,11 +15,11 @@ screen = pygame.display.set_mode((800, 600))
 background = pygame.image.load('resources/background.png')
 
 # Agregamos el sonido
-mixer.music.load('resources/background.wav')
+mixer.music.load("resources/background.wav")
 mixer.music.play(-1)
 
 # Agregamos el titulo e icono a la ventana
-pygame.display.set_caption('Space Invader')
+pygame.display.set_caption("Space Invader")
 icon = pygame.image.load('resources/ufo.png')
 pygame.display.set_icon(icon)
 
@@ -30,34 +30,29 @@ font = pygame.font.Font('freesansbold.ttf', 32)
 textX = 10
 textY = 10
 
-# Agregamos el jugador
+# Agregamos el jugador con su posicion
 playerImg = pygame.image.load('resources/player.png')
-# Aignamos una posicion al jugador
 playerX = 370
 playerY = 480
 playerX_change = 0
 
-# Definimos una funcion para ubicar al jugador dentro de la ventana y pintar el lienzo sobreponiendolo
 def player(x, y):
     screen.blit(playerImg, (x, y))
 
 # Agregamos los enemigos
-# Definimos variables para las posiciones
+# Definimos variables para las posiciones y el numero de enemigos
 enemyImg = []
 enemyX = []
 enemyY = []
 enemyX_change = []
 enemyY_change = []
-# Definimos el numero de enemigos
 num_of_enemies = 6
 
-# Definimos la imagen para los enemigos
+# Definimos la imagen para los enemigos. Establecemos valores aleatorios para la apricion de los enemigos. Se tiene en cuenta que el rango es menor al tamnio de la pantalla en X y en Y (800, 600) y nos aseguramos que los enemigos no aparezcan en la misma linea del jugador
 for i in range(num_of_enemies):
     enemyImg.append(pygame.image.load('resources/enemy.png'))
-    # Establecemos valores aleatorios para la apricion de los enemigos. Se tiene en cuenta que el rango es menor al tamnio de la pantalla en X y en Y (800, 600)
     enemyX.append(random.randint(0, 736))
     enemyY.append(random.randint(50, 150))
-    # Nos aseguramos que los enemigos no aparezcan en la misma linea del jugador
     enemyX_change.append(4)
     enemyY_change.append(40)
 
@@ -70,32 +65,56 @@ def show_score(x, y):
     score = font.render("Score : " + str(score_value), True, (255, 255, 255))
     screen.blit(score, (x, y))
 
+# Bala
+
+# Listo: no puede ver la bala en la pantalla
+# Fuego: la bala se está moviendo actualmente
+
+# Asignamos la imagen de la bala, su posición y estado
+bulletImg = pygame.image.load('resources/bullet.png')
+bulletX = 0
+bulletY = 480
+bulletX_change = 0
+bulletY_change = 10
+bullet_state = "ready"
+
+# Funcion para el disparo de las balas
+def fire_bullet(x, y):
+    global bullet_state
+    bullet_state = "fire"
+    screen.blit(bulletImg, (x + 16, y + 10))
+
+# Funcion de colision
+def isCollision(enemyX, enemyY, bulletX, bulletY):
+    distance = math.sqrt(math.pow(enemyX - bulletX, 2) + (math.pow(enemyY - bulletY, 2)))
+    if distance < 27:
+        return True
+    else:
+        return False
+
+
 # Bucle de ejecucion del juego
 running = True
 while running:
 
     # RGB = Red, Green, Blue
     screen.fill((0, 0, 0))
+
     # Imagen de fondo con su respectiva posicion
     screen.blit(background, (0, 0))
-
+    
     # Esto sirve para que si por ejemplo se presiona en la X de la ventana esta se cierre y pare la ejecucion de la aplicacion
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
         # Ahora dentro del bucle vamos a capturar los eventos del teclado
-        # Si se presiona la tecla, verifique si es derecha o izquierda
+        # Si se presiona la tecla, verifique si es derecha, izquierda o tecla espacio
         if event.type == pygame.KEYDOWN:
-            # Evento tecla izquierda
             if event.key == pygame.K_LEFT:
                 playerX_change = -5
-            
-            # Evento tecla derecha
             if event.key == pygame.K_RIGHT:
                 playerX_change = 5
-
-            # Evento tecla espaciadora para activar el disparo
             if event.key == pygame.K_SPACE:
                 if bullet_state is "ready":
                     bulletSound = mixer.Sound("resources/laser.wav")
@@ -103,43 +122,56 @@ while running:
                     # Obtiene la coordenada X actual de la nave espacial
                     bulletX = playerX
                     fire_bullet(bulletX, bulletY)
-        
+
         # Detiene el movimiento si se suelta la tecla
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
                 playerX_change = 0
-    
-    # Actualizar la posicion del jugador al mover el jugador
-    playerX += playerX_change
 
-    # Limitar el movimiento al tamanio de la pantalla
+    # Actualizar la posicion del jugador al mover el jugador y se limita el movimiento al tamanio de la pantalla
+    playerX += playerX_change
     if playerX <= 0:
         playerX = 0
     elif playerX >= 736:
         playerX = 736
 
-    # Movimiento de los enemigos
+    # Movimiento de los enemigos para que los enemigos den la vuelta al movimiento si se cruzan con el borde
     for i in range(num_of_enemies):
 
-        # Mover la posición del enemigo
         enemyX[i] += enemyX_change[i]
-
-        # Los enemigos dan la vuelta al movimiento si se cruzan con el borde
         if enemyX[i] <= 0:
             enemyX_change[i] = 4
             enemyY[i] += enemyY_change[i]
         elif enemyX[i] >= 736:
             enemyX_change[i] = -4
             enemyY[i] += enemyY_change[i]
-        
+ 
         # Mostrar enemigos
         enemy(enemyX[i], enemyY[i], i)
 
-    # Mostramos el jugador en la posicion indicada
+        # Colision de la bala. Se agrega el sonido de la explosion. Se reinicia la bala. Se incrementa el puntaje y se cambia la posicion del enemigo
+        collision = isCollision(enemyX[i], enemyY[i], bulletX, bulletY)
+        if collision:
+            explosionSound = mixer.Sound("resources/explosion.wav")
+            explosionSound.play()
+            bulletY = 480
+            bullet_state = "ready"
+            score_value += 1
+            enemyX[i] = random.randint(0, 736)
+            enemyY[i] = random.randint(50, 150)
+
+    # Movimiento de la bala
+    if bulletY <= 0:
+        bulletY = 480
+        bullet_state = "ready"
+
+    if bullet_state is "fire":
+        fire_bullet(bulletX, bulletY)
+        bulletY -= bulletY_change
+
+
+
+    # Mostramos el jugador en la posicion indicada.  Llamamos dentro del bucle para visualizar cualquier puntaje o texto en la ventana y actualizamos la ventana
     player(playerX, playerY)
-    
-    # Llamamos dentro del bucle para visualizar cualquier puntaje o texto en la ventana
     show_score(textX, textY)
-    
-    # Actualizamos la ventana
     pygame.display.update()
