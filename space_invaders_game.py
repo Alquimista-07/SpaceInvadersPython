@@ -80,11 +80,12 @@ bullet_state = "ready"
 
 # Funcion para el disparo de las balas
 def fire_bullet(x, y):
+    # Variables globales
     global bullet_state
     bullet_state = "fire"
     screen.blit(bulletImg, (x + 16, y + 10))
 
-# Funcion de colision
+# Funcion de detección colision, encuentra la distancia entre (x1,y1) y (x2,y2)
 def isCollision(enemyX, enemyY, bulletX, bulletY):
     distance = math.sqrt(math.pow(enemyX - bulletX, 2) + (math.pow(enemyY - bulletY, 2)))
     if distance < 27:
@@ -92,17 +93,33 @@ def isCollision(enemyX, enemyY, bulletX, bulletY):
     else:
         return False
 
-
-# Bucle de ejecucion del juego
-running = True
-while running:
-
+# Funcion para colocacr el fondo
+def set_background():
+    # Variables globales
+    global background
     # RGB = Red, Green, Blue
     screen.fill((0, 0, 0))
 
     # Imagen de fondo con su respectiva posicion
     screen.blit(background, (0, 0))
-    
+
+# Funcion para el movimiento de la bala
+def move_bullet():
+    # Variables globales
+    global bulletX, bulletY, bullet_state
+    # Movimiento de la bala
+    if bulletY <= 0:
+        bulletY = 480
+        bullet_state = "ready"
+
+    if bullet_state is "fire":
+        fire_bullet(bulletX, bulletY)
+        bulletY -= bulletY_change
+
+# Función para las entradas y acciones de teclado en el juego
+def game_input():
+    # Variables globales
+    global running, playerX_change, bulletX, playerX, bulletY
     # Esto sirve para que si por ejemplo se presiona en la X de la ventana esta se cierre y pare la ejecucion de la aplicacion
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -135,6 +152,10 @@ while running:
     elif playerX >= 736:
         playerX = 736
 
+# Funcion para el movimiento de los enemigos
+def enemy_movement():
+    # Variables globales
+    global enemyX, enemyX_change, enemyY, enemyY_change
     # Movimiento de los enemigos para que los enemigos den la vuelta al movimiento si se cruzan con el borde
     for i in range(num_of_enemies):
 
@@ -149,6 +170,11 @@ while running:
         # Mostrar enemigos
         enemy(enemyX[i], enemyY[i], i)
 
+# Funcion para las colisiones
+def collision():
+    # Variales globales
+    global num_of_enemies, enemyX, enemyY, bulletX, bulletY, bullet_state, score_value
+    for i in range(num_of_enemies):
         # Colision de la bala. Se agrega el sonido de la explosion. Se reinicia la bala. Se incrementa el puntaje y se cambia la posicion del enemigo
         collision = isCollision(enemyX[i], enemyY[i], bulletX, bulletY)
         if collision:
@@ -160,17 +186,21 @@ while running:
             enemyX[i] = random.randint(0, 736)
             enemyY[i] = random.randint(50, 150)
 
-    # Movimiento de la bala
-    if bulletY <= 0:
-        bulletY = 480
-        bullet_state = "ready"
-
-    if bullet_state is "fire":
-        fire_bullet(bulletX, bulletY)
-        bulletY -= bulletY_change
 
 
-
+# Bucle de ejecucion del juego
+running = True
+while running:
+    # Llamamos la funcion para colocar el fondo
+    set_background()
+    # Llamaos la función para las acciones de teclado del juego
+    game_input()
+    # Llamamos la funcion del movimiento de los enemigos
+    enemy_movement()
+    # Llamamos la funcion de colisiones
+    collision()
+    #Llamamos la función del movimiento de la bala
+    move_bullet()
     # Mostramos el jugador en la posicion indicada.  Llamamos dentro del bucle para visualizar cualquier puntaje o texto en la ventana y actualizamos la ventana
     player(playerX, playerY)
     show_score(textX, textY)
